@@ -26,7 +26,7 @@ CUTOFF = datetime.now(timezone.utc) - timedelta(hours=48)
 BLOCKED_PATHS = (
     "/sport/",
     "/entertainment/",
-    "/culture/","/food/","/music/","/tv-and-tadio/","/lifeandstyle/","/stage/","/film/","/artanddesign/","/fashion/","/books/","/football/","/media/","/travel/","/society/","/uk-news/"
+    "/culture/","/food/","/music/","/tv-and-tadio/","/lifeandstyle/","/stage/","/film/","/artanddesign/","/fashion/","/books/","/football/","/media/","/travel/","/society/","/uk-news/","/australia-news/"
 
 )
 

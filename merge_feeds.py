@@ -52,7 +52,8 @@ BLOCKED_PATHS = (
 "/women/",
 "/men/",
 "/money/",
-"/obituary/"
+"/obituary/",
+"/politics/"
 )
 
 def is_blocked(link):

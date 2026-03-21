@@ -16,9 +16,8 @@ FEEDS = [
     "https://www.theguardian.com/international/rss",
     "https://feeds.guardian.co.uk/theguardian/world/rss",
     "https://www.theguardian.com/us/commentisfree/rss",
-"http://www.guardian.co.uk/weekly/rss",
-
-"http://www.guardian.co.uk/environment/renewableenergy/rss"
+    "http://www.guardian.co.uk/weekly/rss",
+    "http://www.guardian.co.uk/environment/renewableenergy/rss"
 ]
 
 OUTPUT = "merged.xml"
@@ -29,34 +28,35 @@ CUTOFF = datetime.now(timezone.utc) - timedelta(hours=48)
 BLOCKED_PATHS = (
     "/sport/",
     "/entertainment/",
-    "/culture/","/food/","/music/","/tv-and-tadio/","/lifeandstyle/","/stage/","/film/","/artanddesign/","/fashion/","/books/","/football/","/media/","/travel/","/society/","/uk-news/","/australia-news/","/television/","/culture/","/film/","/music/","/tv-and-radio/","/television/","/stage/",
-"/theatre/","/artanddesign/","/books/","/games/","/classical/","/opera/",
-"/dance/","/photography/","/design/","/architecture/","/comedy/","/radio/",
-"/lifeandstyle/","/fashion/","/food/","/recipes/","/drink/","/travel/",
-"/holidays/","/home/","/home-and-garden/","/interiors/","/gardening/",
-"/family/","/relationships/","/sex/","/dating/","/health/","/fitness/",
-"/wellbeing/","/beauty/","/shopping/","/consumer/","/money/saving",
-"/sport/","/football/","/cricket/","/tennis/","/rugby/","/formula-one/",
-"/f1/","/golf/","/cycling/","/boxing/","/mma/","/motorsport/",
-"/athletics/","/olympics/",
-"/crosswords/","/cryptic/","/quick/","/quizzes/","/puzzles/","/games/",
-"/brain-teasers/",
-"/video/","/podcasts/","/audio/","/gallery/","/picture/",
-"/paid-content/","/guardian-labs/","/advertiser-content/","/sponsored/",
-"/affiliate/","/partner-content/",
-"/australia-culture/","/us-culture/","/uk-culture/","/europe-culture/",
-"/cities/","/local-life/",
-"/media/","/technology/games/","/technology/apps/","/rugby-union/",
-"/us-sports/",
-"/tv-and-radio/",
-"/love-and-sex/",
-"/health-and-fitness/",
-"/women/",
-"/men/",
-"/money/",
-"/obituary/",
-"/politics/"
+    "/culture/", "/food/", "/music/", "/tv-and-tadio/", "/lifeandstyle/", "/stage/", "/film/", "/artanddesign/", "/fashion/", "/books/", "/football/", "/media/", "/travel/", "/society/", "/uk-news/", "/australia-news/", "/television/", "/culture/", "/film/", "/music/", "/tv-and-radio/", "/television/", "/stage/",
+    "/theatre/", "/artanddesign/", "/books/", "/games/", "/classical/", "/opera/",
+    "/dance/", "/photography/", "/design/", "/architecture/", "/comedy/", "/radio/",
+    "/lifeandstyle/", "/fashion/", "/food/", "/recipes/", "/drink/", "/travel/",
+    "/holidays/", "/home/", "/home-and-garden/", "/interiors/", "/gardening/",
+    "/family/", "/relationships/", "/sex/", "/dating/", "/health/", "/fitness/",
+    "/wellbeing/", "/beauty/", "/shopping/", "/consumer/", "/money/saving",
+    "/sport/", "/football/", "/cricket/", "/tennis/", "/rugby/", "/formula-one/",
+    "/f1/", "/golf/", "/cycling/", "/boxing/", "/mma/", "/motorsport/",
+    "/athletics/", "/olympics/",
+    "/crosswords/", "/cryptic/", "/quick/", "/quizzes/", "/puzzles/", "/games/",
+    "/brain-teasers/",
+    "/video/", "/podcasts/", "/audio/", "/gallery/", "/picture/",
+    "/paid-content/", "/guardian-labs/", "/advertiser-content/", "/sponsored/",
+    "/affiliate/", "/partner-content/",
+    "/australia-culture/", "/us-culture/", "/uk-culture/", "/europe-culture/",
+    "/cities/", "/local-life/",
+    "/media/", "/technology/games/", "/technology/apps/", "/rugby-union/",
+    "/us-sports/",
+    "/tv-and-radio/",
+    "/love-and-sex/",
+    "/health-and-fitness/",
+    "/women/",
+    "/men/",
+    "/money/",
+    "/obituary/",
+    "/politics/"
 )
+
 
 def is_blocked(link):
     if not link:
@@ -67,6 +67,7 @@ def is_blocked(link):
             return True
     return False
 
+
 def load_existing_links(root):
     links = set()
     for item in root.xpath("//item/link"):
@@ -74,19 +75,40 @@ def load_existing_links(root):
             links.add(item.text.strip())
     return links
 
+
 def parse_datetime(entry):
     if hasattr(entry, "published"):
         return dateparser.parse(entry.published).astimezone(timezone.utc)
     return None
 
+
 def extract_image(entry):
+    """
+    Pick the highest-resolution image available.
+
+    Guardian RSS includes multiple media:content elements at different widths.
+    Grabbing index [0] often returns the smallest thumbnail.
+    We sort by the 'width' attribute (integer) descending and take the largest.
+    Falls back to any image link if media_content is absent.
+    """
     if "media_content" in entry and entry.media_content:
-        return entry.media_content[0].get("url")
+        # Sort by width descending; entries without a width get 0
+        best = max(
+            entry.media_content,
+            key=lambda m: int(m.get("width", 0))
+        )
+        url = best.get("url")
+        if url:
+            return url
+
+    # Fallback: explicit image links in entry.links
     if "links" in entry:
         for l in entry.links:
             if l.get("type", "").startswith("image"):
                 return l.get("href")
+
     return None
+
 
 if os.path.exists(OUTPUT):
     tree = etree.parse(OUTPUT)
@@ -169,4 +191,4 @@ tree.write(
     encoding="utf-8",
     xml_declaration=True,
     pretty_print=True
-            )
+)
